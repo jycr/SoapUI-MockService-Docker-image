@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Default usage: docker-entrypoint.sh start-soapui
@@ -24,7 +24,6 @@ if [ -d /docker-entrypoint-initdb.d ]; then
         [ -f "$f" ] && . "$f"
     done
 fi
-
 
 #
 # Setup default values for environment variables.
@@ -76,6 +75,7 @@ PID=$!
 wait $PID
 # prevent another trap while mocksevicerunner is stopping
 trap - TERM INT
+
 # wait for stop to complete
 wait $PID
 

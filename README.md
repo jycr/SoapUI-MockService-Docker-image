@@ -2,7 +2,7 @@
 
 This project builds a docker container for running a Mock-Service with SOAP-UI
 
-        $ docker build -t fbascheper/soapui-mockservice-runner .
+        $ docker build -t propoff/soapui-mockservice-runner .
 
 ## Running the image
 

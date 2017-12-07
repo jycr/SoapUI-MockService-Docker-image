@@ -2,48 +2,32 @@
 # Create an extensible SoapUI mock service runner image using CentOS
 #######################################################################
 
-# Use the centos 7 base image
-FROM centos:7
+FROM openjdk:8-jre-alpine
 
-MAINTAINER fbascheper <temp01@fam-scheper.nl>
+MAINTAINER prop <propoff@gmail.com>
 
 # Update the system
-RUN yum -y update;yum clean all
 
-##########################################################
-# Install Java JDK
-##########################################################
-RUN yum -y install wget && \
-    wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u92-b14/jdk-8u92-linux-x64.rpm && \
-    echo "881ee6070efcb427204f04c98db9a173  jdk-8u92-linux-x64.rpm" >> MD5SUM && \
-    md5sum -c MD5SUM && \
-    rpm -Uvh jdk-8u92-linux-x64.rpm && \
-    yum -y remove wget && \
-    rm -f jdk-8u92-linux-x64.rpm MD5SUM
-
-ENV JAVA_HOME /usr/java/jdk1.8.0_92
-
+RUN apk update
 
 ##########################################################
 # Download and unpack soapui
 ##########################################################
 
-RUN groupadd -r soapui && useradd -r -g soapui -m -d /home/soapui soapui
+RUN apk add shadow && apk add wget && \
+    groupadd -r soapui && useradd -r -g soapui -m -d /home/soapui soapui
 
-RUN yum -y install wget && yum -y install tar && \
-    wget --no-check-certificate --no-cookies http://cdn01.downloads.smartbear.com/soapui/5.2.1/SoapUI-5.2.1-linux-bin.tar.gz && \
+RUN wget --no-check-certificate --no-cookies --quiet http://cdn01.downloads.smartbear.com/soapui/5.2.1/SoapUI-5.2.1-linux-bin.tar.gz && \
     echo "ba51c369cee1014319146474334fb4e1  SoapUI-5.2.1-linux-bin.tar.gz" >> MD5SUM && \
     md5sum -c MD5SUM && \
     tar -xzf SoapUI-5.2.1-linux-bin.tar.gz -C /home/soapui && \
-    yum -y remove wget && yum -y remove tar && \
     rm -f SoapUI-5.2.1-linux-bin.tar.gz MD5SUM
 
 RUN chown -R soapui:soapui /home/soapui
-RUN find /home/soapui -type d -execdir chmod 770 {} \;
-RUN find /home/soapui -type f -execdir chmod 660 {} \;
+RUN find /home/soapui -type d -exec chmod 770 {} \;
+RUN find /home/soapui -type f -exec chmod 660 {} \;
 
-RUN yum -y install curl && \
-    curl -o /usr/local/bin/gosu -SL "https://github.com/tianon/gosu/releases/download/1.3/gosu-amd64" && \
+RUN wget --no-check-certificate --no-cookies --quiet -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.3/gosu-amd64" && \
     chmod +x /usr/local/bin/gosu
 
 ############################################
@@ -73,9 +57,10 @@ RUN chmod 700 /docker-entrypoint.sh
 RUN chmod 770 $SOAPUI_DIR/bin/*.sh
 
 RUN chown -R soapui:soapui $SOAPUI_PRJ
-RUN find $SOAPUI_PRJ -type d -execdir chmod 770 {} \;
-RUN find $SOAPUI_PRJ -type f -execdir chmod 660 {} \;
+RUN find $SOAPUI_PRJ -type d -exec chmod 770 {} \;
+RUN find $SOAPUI_PRJ -type f -exec chmod 660 {} \;
 
+RUN apk del wget shadow
 
 ############################################
 # Start SoapUI mock service runner
